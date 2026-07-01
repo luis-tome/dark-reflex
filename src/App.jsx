@@ -352,7 +352,7 @@ export default function App() {
 
   const fetchPage = async (url, i, total) => {
     setLoadingStep(`A OBTER PÁGINA ${i + 1} DE ${total}...`);
-    const d = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+    const d = await fetchWithRetry("/api/anthropic", {
       method: "POST",
       headers: { "Content-Type": "application/json", "anthropic-beta": "web-fetch-2025-09-10" },
       body: JSON.stringify({
@@ -425,7 +425,7 @@ export default function App() {
       try {
         const text = await resolveText(input, "case");
         setLoadingStep("A GERAR GUIÃO...");
-        const d = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+        const d = await fetchWithRetry("/api/anthropic", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 8000, system: SYS_SINGLE, messages: [{ role: "user", content: `Case text:\n\n${text}` }] })
         });
@@ -450,7 +450,7 @@ export default function App() {
         }
         const combined = parts.join("\n\n");
         setLoadingStep("A GERAR GUIÃO MULTI-HISTÓRIA...");
-        const d = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+        const d = await fetchWithRetry("/api/anthropic", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 16000, system: SYS_MULTI, messages: [{ role: "user", content: `Sources for ${activeSlots.length} stories:\n\n${combined}` }] })
         });
@@ -478,7 +478,7 @@ export default function App() {
     if (!igInput.trim()) return;
     setIgLoading(true); setIgError(""); setIgResult(null); setSlideImages({});
     try {
-      const d = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+      const d = await fetchWithRetry("/api/anthropic", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-6", max_tokens: 3000,
