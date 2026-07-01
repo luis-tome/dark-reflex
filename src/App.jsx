@@ -352,9 +352,9 @@ export default function App() {
 
   const fetchPage = async (url, i, total) => {
     setLoadingStep(`A OBTER PÁGINA ${i + 1} DE ${total}...`);
-    const d = await fetchWithRetry("/api/anthropic", {
+    const d = await fetchWithRetry("/api/webfetch", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "anthropic-beta": "web-fetch-2025-09-10" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-6", max_tokens: 4000,
         tools: [{ type: "web_fetch_20250910", name: "web_fetch", max_uses: 3, max_content_tokens: 30000 }],
