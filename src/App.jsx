@@ -383,6 +383,10 @@ export default function App() {
       }
       if (rest) parts.push(`--- NOTES ---\n${rest}`);
       text = parts.join("\n\n");
+      // Fallback: se o fetch falhou mas há texto colado, usa o texto directamente
+      if (text.trim().length < 150 && rest.length >= 150) {
+        text = rest;
+      }
     }
     if (text.trim().length < 150) {
       throw new Error(`Não foi possível extrair conteúdo suficiente${label ? ` para ${label}` : ""} — a página pode estar a bloquear acesso automático. Tenta colar o texto do caso diretamente em vez do URL.`);
