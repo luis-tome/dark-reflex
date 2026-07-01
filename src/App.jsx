@@ -350,46 +350,10 @@ export default function App() {
     }
   };
 
-  const fetchPage = async (url, i, total) => {
-    setLoadingStep(`A OBTER PÁGINA ${i + 1} DE ${total}...`);
-    const d = await fetchWithRetry("/api/webfetch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6", max_tokens: 4000,
-        tools: [{ type: "web_fetch_20250910", name: "web_fetch", max_uses: 3, max_content_tokens: 30000 }],
-        messages: [{
-          role: "user",
-          content: `Fetch this exact URL: ${url}\n\nIf you successfully retrieve the actual page content, respond with the raw story/case text from the page — names, dates, events, details — AND list any direct image URLs found embedded in the page (photos, screenshots) on separate lines prefixed with "IMAGE_URL: ". No commentary, no summary of what you did.\n\nIf you cannot access the page (blocked, not found, paywalled, requires login, or the fetch tool returns an error for this specific URL), respond with EXACTLY this and nothing else: FETCH_FAILED`
-        }]
-      })
-    });
-    const text = (d.content?.map(x => x.text || "").join("").trim()) || "";
-    const failurePatterns = /FETCH_FAILED|I (was unable|wasn't able|am unable|couldn't|could not)|I don't have access|no search results|unable to (access|retrieve|fetch)|cannot access|isn't accessible/i;
-    if (!text || failurePatterns.test(text.slice(0, 300))) {
-      return "";
-    }
-    return text;
-  };
-
   const resolveText = async (rawText, label) => {
-    let text = rawText.trim();
-    const { urls, rest } = parseUrls(text);
-    if (urls.length > 0) {
-      const parts = [];
-      for (let i = 0; i < urls.length; i++) {
-        const extracted = await fetchPage(urls[i], i, urls.length);
-        if (extracted) parts.push(`--- PAGE ${i + 1} ---\n${extracted}`);
-      }
-      if (rest) parts.push(`--- NOTES ---\n${rest}`);
-      text = parts.join("\n\n");
-      // Fallback: se o fetch falhou mas há texto colado, usa o texto directamente
-      if (text.trim().length < 150 && rest.length >= 150) {
-        text = rest;
-      }
-    }
-    if (text.trim().length < 150) {
-      throw new Error(`Não foi possível extrair conteúdo suficiente${label ? ` para ${label}` : ""} — a página pode estar a bloquear acesso automático. Tenta colar o texto do caso diretamente em vez do URL.`);
+    const text = rawText.trim();
+    if (text.length < 150) {
+      throw new Error(`Texto demasiado curto${label ? ` para ${label}` : ""} — cola o texto completo do caso diretamente.`);
     }
     return text;
   };
@@ -860,15 +824,9 @@ export default function App() {
 
             {mode === "single" ? (
               <>
-                <p style={s.desc}>Cola um ou mais URLs (um por linha) ou o texto do caso vindo do Reddit, DocumentingReality, WebSleuths.</p>
+                <p style={s.desc}>Cola o texto do caso aqui — copia diretamente do Reddit, DocumentingReality, WebSleuths ou qualquer outro site e cola o texto completo da história.</p>
                 <textarea style={s.textarea} rows={10} value={input} onChange={e => setInput(e.target.value)}
-                  placeholder={"Um URL por linha para fóruns com várias páginas:\nhttps://forum.com/thread/caso\nhttps://forum.com/thread/caso/page-2\n\n— ou cola o texto do caso diretamente —"} />
-                {urls.length > 0 && (
-                  <div style={s.urlBadge}>
-                    🔗 {urls.length} URL{urls.length > 1 ? "s" : ""} detetado{urls.length > 1 ? "s" : ""}
-                    {urls.length > 1 && <div style={s.urlList}>{urls.map((u, i) => <div key={i} style={s.urlItem}><span style={{ color: "#8B1A1A", marginRight: 6 }}>PÁGINA {i + 1}</span><span style={{ color: "#888", fontSize: 10, wordBreak: "break-all" }}>{u}</span></div>)}</div>}
-                  </div>
-                )}
+                  placeholder={"Cola aqui o texto completo do caso — copia do Reddit, DocumentingReality, WebSleuths ou transcrição de vídeo."} />
               </>
             ) : (
               <>
